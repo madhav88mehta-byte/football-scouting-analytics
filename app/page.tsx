@@ -32,9 +32,12 @@ const players: Player[] = [
 const radar = (p:Player) => [{subject:'Pace',A:p.pace},{subject:'Passing',A:p.passing},{subject:'Shooting',A:p.shooting},{subject:'Defending',A:p.defending},{subject:'Physical',A:p.physical}]
 const scoutingScore = (p:Player) => Math.round(p.potential*.45 + p.overall*.3 + Math.min(p.minutes/30,100)*.1 + Math.min((p.goals+p.assists)*2,100)*.1 + Math.max(0,100-p.value/2)*.05)
 
+type SortKey = 'score' | 'overall' | 'potential' | 'value'
+const sortValue = (p:Player, key:SortKey) => key === 'score' ? scoutingScore(p) : p[key]
+
 export default function Home(){
- const [query,setQuery]=useState(''); const [position,setPosition]=useState('All'); const [league,setLeague]=useState('All'); const [minPotential,setMinPotential]=useState(0); const [selected,setSelected]=useState(players[0]); const [compare,setCompare]=useState<Player|null>(null); const [shortlist,setShortlist]=useState<number[]>([1,5]); const [sort,setSort]=useState<'score'|'overall'|'potential'|'value'>('score'); const [advanced,setAdvanced]=useState(false)
- const filtered=useMemo(()=>players.filter(p=>(p.name+' '+p.club+' '+p.country).toLowerCase().includes(query.toLowerCase())&&(position==='All'||p.position===position)&&(league==='All'||p.league===league)&&p.potential>=minPotential).sort((a,b)=>sort==='value'?a.value-b.value:b[sort]-a[sort]),[query,position,league,minPotential,sort])
+ const [query,setQuery]=useState(''); const [position,setPosition]=useState('All'); const [league,setLeague]=useState('All'); const [minPotential,setMinPotential]=useState(0); const [selected,setSelected]=useState(players[0]); const [compare,setCompare]=useState<Player|null>(null); const [shortlist,setShortlist]=useState<number[]>([1,5]); const [sort,setSort]=useState<SortKey>('score'); const [advanced,setAdvanced]=useState(false)
+ const filtered=useMemo(()=>players.filter(p=>(p.name+' '+p.club+' '+p.country).toLowerCase().includes(query.toLowerCase())&&(position==='All'||p.position===position)&&(league==='All'||p.league===league)&&p.potential>=minPotential).sort((a,b)=>sortValue(b,sort)-sortValue(a,sort)),[query,position,league,minPotential,sort])
  const score=scoutingScore(selected)
  const toggleShortlist=(id:number)=>setShortlist(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id])
  return <main>
